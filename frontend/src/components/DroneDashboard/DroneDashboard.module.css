@@ -1,0 +1,334 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+  color: #ffffff;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.droneStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.statusIndicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.statusIndicator.connected {
+  background: #00ff88;
+  box-shadow: 0 0 20px #00ff88;
+  animation: pulse 2s infinite;
+}
+
+.statusIndicator.disconnected {
+  background: #ff0044;
+  box-shadow: 0 0 20px #ff0044;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.droneName {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #00ffff;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.flightMode {
+  padding: 0.5rem 1rem;
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid #00ffff;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.headerCenter {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.missionProgress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 300px;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #00ff88, #00ffff);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+}
+
+.alertsContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 0, 68, 0.2);
+  border: 1px solid #ff0044;
+  border-radius: 20px;
+  color: #ff0044;
+}
+
+.alertIcon {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+.mainContent {
+  display: grid;
+  grid-template-columns: 350px 1fr 350px;
+  flex: 1;
+  gap: 1rem;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.leftPanel,
+.rightPanel {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.centerPanel {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.alertsPanel {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 1000;
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 0, 68, 0.9);
+  color: white;
+  border-radius: 8px;
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgba(255, 0, 68, 0.3);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+  .mainContent {
+    grid-template-columns: 300px 1fr 300px;
+  }
+  
+  .headerLeft,
+  .headerRight {
+    gap: 1rem;
+  }
+  
+  .missionProgress {
+    min-width: 250px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .mainContent {
+    grid-template-columns: 250px 1fr 250px;
+  }
+  
+  .header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .droneName {
+    font-size: 1rem;
+  }
+  
+  .missionProgress {
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .headerLeft,
+  .headerCenter,
+  .headerRight {
+    justify-content: center;
+  }
+  
+  .mainContent {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+  
+  .leftPanel,
+  .rightPanel {
+    max-height: 200px;
+    overflow: hidden;
+  }
+  
+  .centerPanel {
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0.5rem;
+  }
+  
+  .droneName {
+    font-size: 0.9rem;
+  }
+  
+  .flightMode {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+  
+  .alertsContainer {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+  
+  .mainContent {
+    padding: 0.25rem;
+    gap: 0.25rem;
+  }
+  
+  .leftPanel,
+  .rightPanel {
+    max-height: 150px;
+  }
+  
+  .centerPanel {
+    min-height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0.5rem 0.25rem;
+  }
+  
+  .headerLeft,
+  .headerCenter,
+  .headerRight {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .missionProgress {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .mainContent {
+    grid-template-rows: auto auto 1fr;
+  }
+  
+  .leftPanel,
+  .rightPanel {
+    max-height: 120px;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 255, 0.5);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 255, 0.7);
+}

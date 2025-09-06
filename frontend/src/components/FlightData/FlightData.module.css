@@ -1,0 +1,293 @@
+.flightDataPanel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(0, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+}
+
+.headerIcon {
+  color: #00ffff;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #00ffff;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.toggleButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  border-radius: 6px;
+  color: #00ffff;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.toggleButton:hover {
+  background: rgba(0, 255, 255, 0.2);
+  border-color: rgba(0, 255, 255, 0.5);
+  color: #ffffff;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.section {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.sectionTitle {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sectionTitle svg {
+  color: #00ffff;
+}
+
+/* Performance Metrics */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.metricCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.metricHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.metricIcon {
+  display: flex;
+  align-items: center;
+}
+
+.metricLabel {
+  font-size: 0.8rem;
+  color: #cccccc;
+  flex: 1;
+}
+
+.metricValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+.progressBar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Charts */
+.chartContainer {
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.chartValue {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #00ffff;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+/* Status Grid */
+.statusGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.statusItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.statusItem:hover {
+  background: rgba(0, 255, 255, 0.05);
+  border-color: rgba(0, 255, 255, 0.2);
+}
+
+.statusItem svg {
+  color: #00ffff;
+  flex-shrink: 0;
+}
+
+.statusLabel {
+  font-size: 0.8rem;
+  color: #cccccc;
+  flex: 1;
+}
+
+.statusValue {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+.statusValue.warning {
+  color: #ffaa00;
+  animation: warningPulse 2s infinite;
+}
+
+@keyframes warningPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Flight Time */
+.flightTimeContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.timeEstimate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.timeLabel {
+  font-size: 0.8rem;
+  color: #cccccc;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.timeValue {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #00ff88;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+  .metricValue {
+    font-size: 1.3rem;
+  }
+  
+  .chartValue {
+    font-size: 1rem;
+  }
+  
+  .statusLabel,
+  .statusValue {
+    font-size: 0.75rem;
+  }
+}
+
+/* Custom scrollbar */
+.content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 255, 0.5);
+}
+
+/* Recharts customization */
+:global(.recharts-cartesian-grid-horizontal line),
+:global(.recharts-cartesian-grid-vertical line) {
+  stroke: rgba(255, 255, 255, 0.1) !important;
+}
+
+:global(.recharts-text) {
+  fill: #ffffff !important;
+}
