@@ -10,8 +10,6 @@ import {
   Wind,
   Battery,
   Gauge,
-  ChevronDown,
-  ChevronUp,
   Eye,
   EyeOff
 } from 'lucide-react';
