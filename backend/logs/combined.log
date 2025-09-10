@@ -1,0 +1,16 @@
+{"level":"info","message":"WebSocket server started on port 8081","service":"relief-wings-backend","timestamp":"2025-09-09T14:20:08.285Z"}
+{"level":"info","message":"Redis clients connected","service":"relief-wings-backend","timestamp":"2025-09-09T14:20:08.354Z"}
+{"level":"info","message":"PostgreSQL database connected successfully via Prisma","service":"relief-wings-backend","timestamp":"2025-09-09T14:20:08.380Z"}
+{"level":"info","message":"Database connection test passed","service":"relief-wings-backend","timestamp":"2025-09-09T14:20:08.383Z"}
+{"level":"info","message":"PostgreSQL database connected via Prisma","service":"relief-wings-backend","timestamp":"2025-09-09T14:20:08.383Z"}
+{"level":"info","message":"ReliefWings Server fully initialized","service":"relief-wings-backend","timestamp":"2025-09-09T14:20:08.384Z"}
+{"level":"info","message":"HTTP server started on port 3001","service":"relief-wings-backend","timestamp":"2025-09-09T14:20:08.384Z"}
+{"level":"info","message":"Shutting down ReliefWings Server","service":"relief-wings-backend","timestamp":"2025-09-09T14:20:17.793Z"}
+{"level":"info","message":"Shutting down ReliefWings Server","service":"relief-wings-backend","timestamp":"2025-09-09T14:20:17.796Z"}
+{"level":"info","message":"WebSocket server started on port 8081","service":"relief-wings-backend","timestamp":"2025-09-09T16:29:32.232Z"}
+{"level":"info","message":"Redis clients connected","service":"relief-wings-backend","timestamp":"2025-09-09T16:29:32.276Z"}
+{"level":"info","message":"PostgreSQL database connected successfully via Prisma","service":"relief-wings-backend","timestamp":"2025-09-09T16:29:32.308Z"}
+{"level":"info","message":"Database connection test passed","service":"relief-wings-backend","timestamp":"2025-09-09T16:29:32.313Z"}
+{"level":"info","message":"PostgreSQL database connected via Prisma","service":"relief-wings-backend","timestamp":"2025-09-09T16:29:32.313Z"}
+{"level":"info","message":"ReliefWings Server fully initialized","service":"relief-wings-backend","timestamp":"2025-09-09T16:29:32.313Z"}
+{"level":"info","message":"HTTP server started on port 3001","service":"relief-wings-backend","timestamp":"2025-09-09T16:29:32.314Z"}

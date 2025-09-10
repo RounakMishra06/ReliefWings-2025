@@ -1,0 +1,210 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and authorization
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(VIEWER)
+  permissions  String[]
+  createdAt    DateTime @default(now()) @map("created_at")
+  lastLogin    DateTime? @map("last_login")
+  
+  // Relations
+  missions Mission[]
+  alerts   Alert[]
+  
+  @@map("users")
+}
+
+// Drone model for drone fleet management
+model Drone {
+  id                   String      @id @default(cuid())
+  droneId              String      @unique @map("drone_id")
+  name                 String
+  model                String
+  status               DroneStatus @default(OFFLINE)
+  lastSeen             DateTime?   @map("last_seen")
+  homeLocationLat      Float       @map("home_location_lat")
+  homeLocationLon      Float       @map("home_location_lon") 
+  homeLocationAlt      Float       @map("home_location_alt")
+  maxAltitude          Float       @default(120) @map("max_altitude")
+  maxSpeed             Float       @default(15) @map("max_speed")
+  batteryLowThreshold  Float       @default(20) @map("battery_low_threshold")
+  createdAt            DateTime    @default(now()) @map("created_at")
+  updatedAt            DateTime    @updatedAt @map("updated_at")
+  
+  // Relations
+  telemetryData TelemetryData[]
+  commands      Command[]
+  missions      Mission[]
+  alerts        Alert[]
+  
+  @@map("drones")
+}
+
+// Telemetry data - high frequency data from drones
+model TelemetryData {
+  id                String   @id @default(cuid())
+  type              String   @default("telemetry")
+  version           Int      @default(1)
+  droneId           String   @map("drone_id")
+  seq               Int
+  ts                BigInt   // Unix timestamp from drone
+  receivedAt        DateTime @default(now()) @map("received_at")
+  
+  // GPS data
+  gpsLat            Float    @map("gps_lat")
+  gpsLon            Float    @map("gps_lon")
+  gpsFixType        Int      @map("gps_fix_type")
+  
+  // Altitude
+  altRel            Float    @map("alt_rel")
+  
+  // Attitude
+  roll              Float
+  pitch             Float
+  yaw               Float
+  
+  // Velocity [vx, vy, vz]
+  velX              Float    @map("vel_x")
+  velY              Float    @map("vel_y") 
+  velZ              Float    @map("vel_z")
+  
+  // Battery
+  batteryVoltage    Float    @map("battery_voltage")
+  batteryCurrent    Float    @map("battery_current")
+  batteryRemaining  Float    @map("battery_remaining")
+  
+  // Flight status
+  mode              String
+  armed             Boolean
+  
+  // Home location
+  homeLocationLat   Float    @map("home_location_lat")
+  homeLocationLon   Float    @map("home_location_lon")
+  
+  // Relations
+  drone             Drone    @relation(fields: [droneId], references: [droneId], onDelete: Cascade)
+  
+  @@index([droneId, ts])
+  @@index([receivedAt])
+  @@index([gpsLat, gpsLon])
+  @@map("telemetry_data")
+}
+
+// Commands sent to drones
+model Command {
+  id          String        @id @default(cuid())
+  droneId     String        @map("drone_id")
+  type        String        @default("command")
+  command     String
+  args        Json?
+  status      CommandStatus @default(PENDING)
+  timestamp   DateTime      @default(now())
+  source      String        @default("web")
+  executedAt  DateTime?     @map("executed_at")
+  response    Json?
+  error       String?
+  
+  // Relations  
+  drone       Drone         @relation(fields: [droneId], references: [droneId], onDelete: Cascade)
+  
+  @@index([droneId, timestamp])
+  @@index([command, timestamp])
+  @@map("commands")
+}
+
+// Mission planning and execution
+model Mission {
+  id          String        @id @default(cuid())
+  missionId   String        @unique @map("mission_id")
+  name        String
+  description String?
+  droneId     String        @map("drone_id")
+  operatorId  String        @map("operator_id")
+  status      MissionStatus @default(PLANNED)
+  waypoints   Json          // Array of waypoint objects
+  createdAt   DateTime      @default(now()) @map("created_at")
+  startedAt   DateTime?     @map("started_at")
+  completedAt DateTime?     @map("completed_at")
+  
+  // Relations
+  drone       Drone         @relation(fields: [droneId], references: [droneId])
+  operator    User          @relation(fields: [operatorId], references: [id])
+  
+  @@index([missionId])
+  @@index([droneId, status])
+  @@index([operatorId])
+  @@map("missions")
+}
+
+// Alert system for critical notifications
+model Alert {
+  id        String        @id @default(cuid())
+  droneId   String        @map("drone_id")
+  severity  AlertSeverity
+  message   String
+  data      Json?
+  resolved  Boolean       @default(false)
+  timestamp DateTime      @default(now())
+  resolvedBy String?      @map("resolved_by")
+  resolvedAt DateTime?    @map("resolved_at")
+  createdAt DateTime      @default(now()) @map("created_at")
+  
+  // Relations
+  drone     Drone         @relation(fields: [droneId], references: [droneId], onDelete: Cascade)
+  resolver  User?         @relation(fields: [resolvedBy], references: [id])
+  
+  @@index([droneId, timestamp])
+  @@index([severity, resolved])
+  @@map("alerts")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  OPERATOR
+  VIEWER
+}
+
+enum DroneStatus {
+  ONLINE
+  OFFLINE
+  MAINTENANCE
+  ERROR
+}
+
+enum CommandStatus {
+  PENDING
+  EXECUTING
+  COMPLETED
+  FAILED
+  TIMEOUT
+}
+
+enum MissionStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  ABORTED
+  PAUSED
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}

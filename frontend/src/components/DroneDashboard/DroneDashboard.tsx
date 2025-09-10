@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Wifi, WifiOff, Activity } from 'lucide-react';
 import DroneMap from '../DroneMap/DroneMap';
 import TelemetryPanel from '../TelemetryPanel/TelemetryPanel';
 import FlightData from '../FlightData/FlightData';
+import ControlBar from '../ControlBar/ControlBar';
+import { useWebSocket } from '../../hooks/useWebSocket';
+import type { TelemetryData } from '../../hooks/useWebSocket';
 import styles from './DroneDashboard.module.css';
 
 interface DroneData {
@@ -56,79 +59,229 @@ interface DroneData {
 }
 
 const DroneDashboard: React.FC = () => {
-  const [droneData, setDroneData] = useState<DroneData>({
-    // Initialize with mock data - replace with real telemetry
-    altitude: 125.5,
-    groundSpeed: 12.3,
-    verticalSpeed: 0.5,
-    airSpeed: 13.1,
-    distanceToWaypoint: 245.7,
-    latitude: 40.7128,
-    longitude: -74.0060,
-    heading: 145,
-    homeDistance: 1250.3,
-    gpsSignal: 98,
-    satelliteCount: 12,
-    batteryLevel: 78,
-    batteryVoltage: 22.4,
-    current: 8.5,
-    temperature: 32,
-    throttle: 65,
-    pitch: -2.1,
-    roll: 1.3,
-    yaw: 145,
-    windSpeed: 8.5,
-    windDirection: 230,
-    flightMode: "AUTO",
-    armStatus: true,
-    rssi: -45,
-    waypoints: [
-      {lat: 40.7128, lng: -74.0060, alt: 100},
-      {lat: 40.7138, lng: -74.0070, alt: 120},
-      {lat: 40.7148, lng: -74.0080, alt: 150},
-    ],
-    currentWaypoint: 1,
-    missionProgress: 35,
-    cameraStatus: true,
-    gimbalPitch: -15,
-    gimbalYaw: 0,
-    recordingStatus: true
-  });
+  const { 
+    isConnected, 
+    connectionStatus, 
+    latestTelemetry, 
+    telemetryHistory, 
+    commandAcks,
+    sendCommand 
+  } = useWebSocket();
 
-  const [isConnected] = useState(true);
   const [alerts, setAlerts] = useState<string[]>([]);
+  const [lastDataUpdate, setLastDataUpdate] = useState<Date | null>(null);
 
-  // Simulate real-time data updates
+  // Convert real telemetry to DroneData format
+  const droneData: DroneData = useMemo(() => {
+    if (!latestTelemetry) {
+      // Default/fallback data when no telemetry is available
+      return {
+        altitude: 0,
+        groundSpeed: 0,
+        verticalSpeed: 0,
+        airSpeed: 0,
+        distanceToWaypoint: 0,
+        latitude: 40.7128,
+        longitude: -74.0060,
+        heading: 0,
+        homeDistance: 0,
+        gpsSignal: 0,
+        satelliteCount: 0,
+        batteryLevel: 0,
+        batteryVoltage: 0,
+        current: 0,
+        temperature: 0,
+        throttle: 0,
+        pitch: 0,
+        roll: 0,
+        yaw: 0,
+        windSpeed: 0,
+        windDirection: 0,
+        flightMode: "UNKNOWN",
+        armStatus: false,
+        rssi: -100,
+        waypoints: [],
+        currentWaypoint: 0,
+        missionProgress: 0,
+        cameraStatus: false,
+        gimbalPitch: 0,
+        gimbalYaw: 0,
+        recordingStatus: false
+      };
+    }
+
+    // Calculate additional values from telemetry
+    const velocity = Math.sqrt(
+      Math.pow(latestTelemetry.vel[0], 2) + 
+      Math.pow(latestTelemetry.vel[1], 2)
+    );
+
+    const homeDistance = latestTelemetry.home_location ? 
+      calculateDistance(
+        latestTelemetry.gps.lat, 
+        latestTelemetry.gps.lon,
+        latestTelemetry.home_location.lat, 
+        latestTelemetry.home_location.lon
+      ) : 0;
+
+    return {
+      // Flight Data
+      altitude: latestTelemetry.alt_rel,
+      groundSpeed: velocity,
+      verticalSpeed: -latestTelemetry.vel[2], // NED frame, so negative Z is up
+      airSpeed: velocity, // Approximation
+      distanceToWaypoint: 0, // Would need waypoint data
+      
+      // Position & Navigation
+      latitude: latestTelemetry.gps.lat,
+      longitude: latestTelemetry.gps.lon,
+      heading: (latestTelemetry.attitude.yaw * 180 / Math.PI + 360) % 360, // Convert to degrees
+      homeDistance: homeDistance,
+      gpsSignal: getGpsSignalStrength(latestTelemetry.gps.fix_type),
+      satelliteCount: latestTelemetry.gps.fix_type >= 3 ? 8 : 0, // Estimate
+      
+      // Power & Systems
+      batteryLevel: latestTelemetry.battery.remaining,
+      batteryVoltage: latestTelemetry.battery.voltage,
+      current: latestTelemetry.battery.current,
+      temperature: 25, // Default value - would need temperature sensor
+      
+      // Flight Control (convert from radians to degrees)
+      throttle: 0, // Would need throttle data
+      pitch: latestTelemetry.attitude.pitch * 180 / Math.PI,
+      roll: latestTelemetry.attitude.roll * 180 / Math.PI,
+      yaw: latestTelemetry.attitude.yaw * 180 / Math.PI,
+      
+      // Environmental
+      windSpeed: 0, // Would need wind sensor
+      windDirection: 0,
+      
+      // System Status
+      flightMode: latestTelemetry.mode,
+      armStatus: latestTelemetry.armed,
+      rssi: -50, // Would need radio signal strength
+      
+      // Mission Data
+      waypoints: [
+        {lat: latestTelemetry.home_location.lat, lng: latestTelemetry.home_location.lon, alt: 100}
+      ],
+      currentWaypoint: 0,
+      missionProgress: 0,
+      
+      // Camera & Sensors
+      cameraStatus: false,
+      gimbalPitch: 0,
+      gimbalYaw: 0,
+      recordingStatus: false
+    };
+  }, [latestTelemetry]);
+
+  // Helper functions
+  function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c * 1000; // Return in meters
+  }
+
+  function getGpsSignalStrength(fixType: number): number {
+    switch (fixType) {
+      case 0: return 0;   // No GPS
+      case 1: return 25;  // No fix
+      case 2: return 50;  // 2D fix
+      case 3: return 75;  // 3D fix
+      case 4: return 90;  // DGPS
+      case 5: return 100; // RTK
+      default: return 0;
+    }
+  }
+
+  // Update last data timestamp when new telemetry arrives
   useEffect(() => {
-    const interval = setInterval(() => {
-      setDroneData(prev => ({
-        ...prev,
-        altitude: prev.altitude + (Math.random() - 0.5) * 2,
-        groundSpeed: Math.max(0, prev.groundSpeed + (Math.random() - 0.5) * 3),
-        verticalSpeed: (Math.random() - 0.5) * 2,
-        batteryLevel: Math.max(0, prev.batteryLevel - 0.01),
-        heading: (prev.heading + (Math.random() - 0.5) * 5) % 360,
-        distanceToWaypoint: Math.max(0, prev.distanceToWaypoint - prev.groundSpeed * 0.1),
-        rssi: -40 + Math.random() * 20,
-        temperature: 30 + Math.random() * 10,
-        windSpeed: Math.max(0, 8 + (Math.random() - 0.5) * 4),
-      }));
-    }, 1000);
+    if (latestTelemetry) {
+      setLastDataUpdate(new Date(latestTelemetry.ts));
+    }
+  }, [latestTelemetry]);
 
-    return () => clearInterval(interval);
-  }, []);
-
-  // Monitor for alerts
+  // Monitor for alerts based on real telemetry
   useEffect(() => {
     const newAlerts: string[] = [];
     
-    if (droneData.batteryLevel < 20) newAlerts.push("Low Battery Warning");
-    if (droneData.gpsSignal < 70) newAlerts.push("Weak GPS Signal");
-    if (droneData.windSpeed > 15) newAlerts.push("High Wind Warning");
-    if (droneData.rssi < -70) newAlerts.push("Weak Radio Signal");
+    if (!isConnected) {
+      newAlerts.push("Communication Lost");
+    } else if (latestTelemetry) {
+      // Battery alerts
+      if (droneData.batteryLevel < 20) {
+        newAlerts.push("Critical Battery Level");
+      } else if (droneData.batteryLevel < 30) {
+        newAlerts.push("Low Battery Warning");
+      }
+      
+      // GPS alerts
+      if (droneData.gpsSignal < 50) {
+        newAlerts.push("Poor GPS Signal");
+      }
+      
+      // Altitude alerts
+      if (droneData.altitude > 400) { // FAA limit
+        newAlerts.push("Maximum Altitude Exceeded");
+      }
+      
+      // Speed alerts
+      if (droneData.groundSpeed > 25) { // m/s
+        newAlerts.push("High Speed Warning");
+      }
+      
+      // Flight mode alerts
+      if (latestTelemetry.mode === "LAND" || latestTelemetry.mode === "RTL") {
+        newAlerts.push(`Drone in ${latestTelemetry.mode} Mode`);
+      }
+
+      // System status
+      if (!latestTelemetry.armed && latestTelemetry.mode !== "MANUAL") {
+        newAlerts.push("Drone Disarmed");
+      }
+    } else {
+      newAlerts.push("No Telemetry Data");
+    }
     
     setAlerts(newAlerts);
-  }, [droneData]);
+  }, [isConnected, latestTelemetry, droneData]);
+
+  // Connection status indicator
+  const getConnectionStatusIcon = () => {
+    switch (connectionStatus) {
+      case 'connected': return <Wifi className={styles.statusIcon} />;
+      case 'connecting': return <Activity className={`${styles.statusIcon} ${styles.pulse}`} />;
+      case 'disconnected':
+      case 'error': 
+      default: return <WifiOff className={styles.statusIcon} />;
+    }
+  };
+
+  const getConnectionStatusText = () => {
+    switch (connectionStatus) {
+      case 'connected': return isConnected && latestTelemetry ? 'ONLINE' : 'CONNECTED';
+      case 'connecting': return 'CONNECTING';
+      case 'disconnected': return 'DISCONNECTED';
+      case 'error': return 'CONNECTION ERROR';
+      default: return 'UNKNOWN';
+    }
+  };
+
+  const getDataFreshness = () => {
+    if (!lastDataUpdate) return 'No Data';
+    const now = new Date();
+    const diff = now.getTime() - lastDataUpdate.getTime();
+    if (diff < 5000) return 'Live';
+    if (diff < 30000) return `${Math.floor(diff/1000)}s ago`;
+    return 'Stale';
+  };
 
   return (
     <div className={styles.dashboard}>
@@ -141,23 +294,28 @@ const DroneDashboard: React.FC = () => {
       >
         <div className={styles.headerLeft}>
           <div className={styles.droneStatus}>
-            <div className={`${styles.statusIndicator} ${isConnected ? styles.connected : styles.disconnected}`} />
-            <span className={styles.droneName}>RELIEF DRONE Alpha-1</span>
+            <div className={`${styles.statusIndicator} ${isConnected && latestTelemetry ? styles.connected : styles.disconnected}`} />
+            <span className={styles.droneName}>
+              ReliefWings {latestTelemetry?.drone_id || 'Alpha-1'}
+            </span>
+            {getConnectionStatusIcon()}
+            <span className={styles.connectionStatus}>{getConnectionStatusText()}</span>
           </div>
           <div className={styles.flightMode}>
             <span>{droneData.flightMode}</span>
+            <span className={styles.dataFreshness}>{getDataFreshness()}</span>
           </div>
         </div>
         
         <div className={styles.headerCenter}>
-          <div className={styles.missionProgress}>
-            <span>Mission Progress: {droneData.missionProgress}%</span>
-            <div className={styles.progressBar}>
-              <div 
-                className={styles.progressFill}
-                style={{ width: `${droneData.missionProgress}%` }}
-              />
-            </div>
+          <div className={styles.telemetryInfo}>
+            <span>Seq: {latestTelemetry?.seq || 0}</span>
+            <span>|</span>
+            <span>Alt: {droneData.altitude.toFixed(1)}m</span>
+            <span>|</span>
+            <span>Speed: {droneData.groundSpeed.toFixed(1)}m/s</span>
+            <span>|</span>
+            <span>Battery: {droneData.batteryLevel}%</span>
           </div>
         </div>
 
@@ -215,6 +373,20 @@ const DroneDashboard: React.FC = () => {
         </motion.div>
       </div>
 
+      {/* Control Bar */}
+      <motion.div 
+        className={styles.controlBar}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        <ControlBar 
+          droneData={droneData}
+          isConnected={isConnected}
+          onCommand={sendCommand}
+        />
+      </motion.div>
+
       {/* Alerts Panel */}
       {alerts.length > 0 && (
         <motion.div 
@@ -224,7 +396,7 @@ const DroneDashboard: React.FC = () => {
           transition={{ duration: 0.3 }}
         >
           {alerts.map((alert, index) => (
-            <div key={index} className={styles.alert}>
+            <div key={index} className={`${styles.alert} ${alert.includes('Critical') ? styles.critical : ''}`}>
               <AlertTriangle size={16} />
               <span>{alert}</span>
             </div>

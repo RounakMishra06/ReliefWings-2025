@@ -1,54 +1,398 @@
 .controlBar {
-  grid-area: controls;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1.5rem;
-  background-color: var(--bg-light);
-  border-top: 1px solid var(--border-color);
-}
-
-.button {
   display: flex;
   flex-direction: column;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-top: 2px solid #00d2ff;
+  padding: 12px 20px;
+  gap: 12px;
+  box-shadow: 0 -4px 20px rgba(0, 210, 255, 0.1);
+}
+
+.primaryControls {
+  display: flex;
+  gap: 16px;
   align-items: center;
-  gap: 0.5rem;
-  background: none;
-  border: 2px solid var(--border-color);
-  color: var(--text-secondary);
-  padding: 0.8rem 1.5rem;
+  flex-wrap: wrap;
+}
+
+.armButton,
+.disarmButton,
+.takeoffButton,
+.rtlButton,
+.landButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
   border-radius: 8px;
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 100px;
+  justify-content: center;
 }
 
-.button span {
-  font-size: 0.8rem;
+.armButton {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border: 2px solid #4CAF50;
 }
 
-.button:hover {
-  background-color: var(--border-color);
-  color: var(--text-primary);
+.armButton:hover {
+  background: linear-gradient(135deg, #45a049, #4CAF50);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
-.takeoff {
-  color: #28a745;
-  border-color: #28a745;
+.disarmButton {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: white;
+  border: 2px solid #f44336;
 }
 
-.takeoff:hover {
-  background-color: #28a745;
+.disarmButton:hover {
+  background: linear-gradient(135deg, #d32f2f, #f44336);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+.takeoffButton {
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  color: white;
+  border: 2px solid #2196F3;
+}
+
+.takeoffButton:hover {
+  background: linear-gradient(135deg, #1976D2, #2196F3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.rtlButton {
+  background: linear-gradient(135deg, #FF9800, #F57C00);
+  color: white;
+  border: 2px solid #FF9800;
+}
+
+.rtlButton:hover {
+  background: linear-gradient(135deg, #F57C00, #FF9800);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.landButton {
+  background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+  color: white;
+  border: 2px solid #9C27B0;
+}
+
+.landButton:hover {
+  background: linear-gradient(135deg, #7B1FA2, #9C27B0);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3);
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.confirm {
+  animation: pulse 1s infinite;
+  background: linear-gradient(135deg, #FF5722, #D84315) !important;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.takeoffControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.altitudeInput {
+  width: 60px;
+  padding: 8px;
+  border: 2px solid #00d2ff;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  text-align: center;
+  font-size: 14px;
+}
+
+.altitudeInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.altitudeLabel {
+  color: #00d2ff;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.flightModeControls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.sectionLabel {
+  color: #00d2ff;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.modeButton {
+  padding: 6px 12px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modeButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #00d2ff;
+}
+
+.activeMode {
+  background: linear-gradient(135deg, #00d2ff, #0099cc);
+  color: white;
+  border-color: #00d2ff;
+}
+
+.statusIndicators {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.statusGroup {
+  display: flex;
+  gap: 12px;
+}
+
+.statusIndicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.statusGood .statusDot {
+  background: #4CAF50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+}
+
+.statusWarning .statusDot {
+  background: #FF9800;
+  box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
+}
+
+.statusBad .statusDot {
+  background: #f44336;
+  box-shadow: 0 0 8px rgba(244, 67, 54, 0.6);
+}
+
+.statusArmed .statusDot {
+  background: #f44336;
+  box-shadow: 0 0 8px rgba(244, 67, 54, 0.6);
+  animation: blink 1s infinite;
+}
+
+.statusDisarmed .statusDot {
+  background: #666;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+.statusIndicator span {
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.advancedToggle {
+  display: flex;
+  align-items: center;
+}
+
+.advancedButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.advancedButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #00d2ff;
+}
+
+.advancedControls {
+  display: flex;
+  gap: 20px;
+  padding: 12px 0;
+  border-top: 1px solid #333;
+  margin-top: 8px;
+}
+
+.advancedSection {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.emergencyButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 2px solid #f44336;
+  border-radius: 6px;
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.emergencyButton:hover {
+  background: #f44336;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+.calibrationButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #666;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.calibrationButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #00d2ff;
   color: white;
 }
 
-.report {
-  color: var(--accent-red);
-  border-color: var(--accent-red);
+.calibrationButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.report:hover {
-  background-color: var(--accent-red);
+.confirmationBanner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, #FF5722, #D84315);
   color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  animation: slideUp 0.3s ease;
+}
+
+.cancelButton {
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancelButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .controlBar {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+
+  .primaryControls {
+    gap: 8px;
+  }
+
+  .armButton,
+  .disarmButton,
+  .takeoffButton,
+  .rtlButton,
+  .landButton {
+    padding: 8px 12px;
+    font-size: 12px;
+    min-width: 80px;
+  }
+
+  .flightModeControls,
+  .advancedControls {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .statusGroup {
+    gap: 8px;
+  }
 }
