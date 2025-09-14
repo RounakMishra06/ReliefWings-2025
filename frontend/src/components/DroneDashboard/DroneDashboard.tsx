@@ -1,15 +1,25 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { AlertTriangle, Wifi, WifiOff, Activity } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  AlertTriangle, 
+  Wifi, 
+  WifiOff, 
+  Activity, 
+  Map,
+  Settings,
+  Play,
+  Pause,
+  Square,
+  Home,
+  Target,
+  Layers,
+  Maximize2,
+  Minimize2
+} from 'lucide-react';
 import DroneMap from '../DroneMap/DroneMap';
 import TelemetryPanel from '../TelemetryPanel/TelemetryPanel';
-import FlightData from '../FlightData/FlightData';
-import ControlBar from '../ControlBar/ControlBar';
 import { useWebSocket } from '../../hooks/useWebSocket';
-import type { TelemetryData } from '../../hooks/useWebSocket';
-import styles from './DroneDashboard.module.css';
-
-interface DroneData {
+import styles from './DroneDashboard.module.css';interface DroneData {
   // Flight Data
   altitude: number;
   groundSpeed: number;
@@ -62,14 +72,15 @@ const DroneDashboard: React.FC = () => {
   const { 
     isConnected, 
     connectionStatus, 
-    latestTelemetry, 
-    telemetryHistory, 
-    commandAcks,
-    sendCommand 
+    latestTelemetry
   } = useWebSocket();
 
   const [alerts, setAlerts] = useState<string[]>([]);
   const [lastDataUpdate, setLastDataUpdate] = useState<Date | null>(null);
+  const [leftPanelExpanded, setLeftPanelExpanded] = useState(true);
+  const [rightPanelExpanded, setRightPanelExpanded] = useState(true);
+  const [mapView, setMapView] = useState<'satellite' | 'terrain' | 'hybrid'>('satellite');
+  const [missionMode, setMissionMode] = useState<'plan' | 'execute' | 'monitor'>('plan');
 
   // Convert real telemetry to DroneData format
   const droneData: DroneData = useMemo(() => {
@@ -284,125 +295,290 @@ const DroneDashboard: React.FC = () => {
   };
 
   return (
-    <div className={styles.dashboard}>
-      {/* Header */}
+    <div className={styles.flightPlannerDashboard}>
+      {/* Top Navigation Bar */}
       <motion.div 
-        className={styles.header}
+        className={styles.topBar}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className={styles.headerLeft}>
-          <div className={styles.droneStatus}>
-            <div className={`${styles.statusIndicator} ${isConnected && latestTelemetry ? styles.connected : styles.disconnected}`} />
-            <span className={styles.droneName}>
-              ReliefWings {latestTelemetry?.drone_id || 'Alpha-1'}
-            </span>
+        <div className={styles.topBarLeft}>
+          <div className={styles.logoSection}>
+            <div className={styles.statusDot} />
+            <span className={styles.appTitle}>ReliefWings Alpha-1</span>
             {getConnectionStatusIcon()}
-            <span className={styles.connectionStatus}>{getConnectionStatusText()}</span>
-          </div>
-          <div className={styles.flightMode}>
-            <span>{droneData.flightMode}</span>
-            <span className={styles.dataFreshness}>{getDataFreshness()}</span>
+            <span className={styles.connectionText}>
+              {isConnected ? 'CONNECTED' : 'DISCONNECTED'}
+            </span>
           </div>
         </div>
         
-        <div className={styles.headerCenter}>
-          <div className={styles.telemetryInfo}>
-            <span>Seq: {latestTelemetry?.seq || 0}</span>
-            <span>|</span>
-            <span>Alt: {droneData.altitude.toFixed(1)}m</span>
-            <span>|</span>
-            <span>Speed: {droneData.groundSpeed.toFixed(1)}m/s</span>
-            <span>|</span>
-            <span>Battery: {droneData.batteryLevel}%</span>
+        <div className={styles.topBarCenter}>
+          <div className={styles.missionModes}>
+            <button 
+              className={`${styles.modeBtn} ${missionMode === 'plan' ? styles.active : ''}`}
+              onClick={() => setMissionMode('plan')}
+            >
+              <Target size={16} />
+              Plan
+            </button>
+            <button 
+              className={`${styles.modeBtn} ${missionMode === 'execute' ? styles.active : ''}`}
+              onClick={() => setMissionMode('execute')}
+            >
+              <Play size={16} />
+              Execute
+            </button>
+            <button 
+              className={`${styles.modeBtn} ${missionMode === 'monitor' ? styles.active : ''}`}
+              onClick={() => setMissionMode('monitor')}
+            >
+              <Activity size={16} />
+              Monitor
+            </button>
           </div>
         </div>
 
-        <div className={styles.headerRight}>
-          <div className={styles.alerts}>
-            {alerts.length > 0 && (
-              <motion.div 
-                className={styles.alertsContainer}
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ repeat: Infinity, duration: 2 }}
-              >
-                <AlertTriangle className={styles.alertIcon} />
-                <span>{alerts.length} Alert{alerts.length > 1 ? 's' : ''}</span>
-              </motion.div>
-            )}
+        <div className={styles.topBarRight}>
+          <div className={styles.viewControls}>
+            <button 
+              className={`${styles.viewBtn} ${mapView === 'satellite' ? styles.active : ''}`}
+              onClick={() => setMapView('satellite')}
+            >
+              <Map size={16} />
+              Satellite
+            </button>
+            <button 
+              className={`${styles.viewBtn} ${mapView === 'terrain' ? styles.active : ''}`}
+              onClick={() => setMapView('terrain')}
+            >
+              <Layers size={16} />
+              Terrain
+            </button>
           </div>
         </div>
       </motion.div>
 
-      {/* Main Content */}
-      <div className={styles.mainContent}>
-        {/* Left Panel - Telemetry */}
-        <motion.div 
-          className={styles.leftPanel}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <TelemetryPanel droneData={droneData} />
-        </motion.div>
+      {/* Main Content Area */}
+      <div className={styles.mainContentArea}>
+        {/* Left Sidebar - Mission Planning */}
+        <AnimatePresence>
+          {leftPanelExpanded && (
+            <motion.div 
+              className={styles.leftSidebar}
+              initial={{ opacity: 0, x: -300 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -300 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className={styles.sidebarHeader}>
+                <h3>Mission Planning</h3>
+                <button 
+                  className={styles.collapseBtn}
+                  onClick={() => setLeftPanelExpanded(false)}
+                >
+                  <Minimize2 size={16} />
+                </button>
+              </div>
+              
+              <div className={styles.sidebarContent}>
+                {/* Mission Settings */}
+                <div className={styles.planningSection}>
+                  <h4>Flight Parameters</h4>
+                  <div className={styles.parameterGrid}>
+                    <div className={styles.parameter}>
+                      <label>Altitude</label>
+                      <div className={styles.inputGroup}>
+                        <input type="number" defaultValue="100" />
+                        <span>m</span>
+                      </div>
+                    </div>
+                    <div className={styles.parameter}>
+                      <label>Speed</label>
+                      <div className={styles.inputGroup}>
+                        <input type="number" defaultValue="15" />
+                        <span>m/s</span>
+                      </div>
+                    </div>
+                    <div className={styles.parameter}>
+                      <label>Camera Angle</label>
+                      <div className={styles.inputGroup}>
+                        <input type="number" defaultValue="-90" />
+                        <span>°</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-        {/* Center Panel - Map */}
-        <motion.div 
-          className={styles.centerPanel}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
+                {/* Waypoints List */}
+                <div className={styles.planningSection}>
+                  <h4>Waypoints</h4>
+                  <div className={styles.waypointsList}>
+                    <div className={styles.waypoint}>
+                      <div className={styles.waypointMarker}>1</div>
+                      <div className={styles.waypointInfo}>
+                        <span>Home</span>
+                        <small>40.7128, -74.0060</small>
+                      </div>
+                      <Home size={16} />
+                    </div>
+                    <div className={styles.waypoint}>
+                      <div className={styles.waypointMarker}>2</div>
+                      <div className={styles.waypointInfo}>
+                        <span>Survey Point A</span>
+                        <small>40.7130, -74.0050</small>
+                      </div>
+                      <Target size={16} />
+                    </div>
+                    <div className={styles.waypoint}>
+                      <div className={styles.waypointMarker}>3</div>
+                      <div className={styles.waypointInfo}>
+                        <span>Survey Point B</span>
+                        <small>40.7140, -74.0040</small>
+                      </div>
+                      <Target size={16} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mission Actions */}
+                <div className={styles.planningSection}>
+                  <h4>Mission Control</h4>
+                  <div className={styles.actionButtons}>
+                    <button className={styles.primaryBtn}>
+                      <Play size={16} />
+                      Start Mission
+                    </button>
+                    <button className={styles.secondaryBtn}>
+                      <Pause size={16} />
+                      Pause
+                    </button>
+                    <button className={styles.dangerBtn}>
+                      <Square size={16} />
+                      Abort
+                    </button>
+                    <button className={styles.secondaryBtn}>
+                      <Home size={16} />
+                      Return Home
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Collapsed Left Panel Toggle */}
+        {!leftPanelExpanded && (
+          <motion.button 
+            className={styles.leftToggle}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            onClick={() => setLeftPanelExpanded(true)}
+          >
+            <Maximize2 size={16} />
+          </motion.button>
+        )}
+
+        {/* Central Map Area */}
+        <div className={styles.mapContainer}>
           <DroneMap 
             dronePosition={{ lat: droneData.latitude, lng: droneData.longitude }}
             waypoints={droneData.waypoints}
             heading={droneData.heading}
             homeDistance={droneData.homeDistance}
           />
-        </motion.div>
+          
+          {/* Map Overlay Controls */}
+          <div className={styles.mapOverlays}>
+            <div className={styles.mapControls}>
+              <button className={styles.mapControlBtn}>
+                <Home size={18} />
+              </button>
+              <button className={styles.mapControlBtn}>
+                <Target size={18} />
+              </button>
+              <button className={styles.mapControlBtn}>
+                <Layers size={18} />
+              </button>
+              <button className={styles.mapControlBtn}>
+                <Settings size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
 
-        {/* Right Panel - Flight Data */}
-        <motion.div 
-          className={styles.rightPanel}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <FlightData droneData={droneData} />
-        </motion.div>
+        {/* Right Sidebar - Telemetry & Status */}
+        <AnimatePresence>
+          {rightPanelExpanded && (
+            <motion.div 
+              className={styles.rightSidebar}
+              initial={{ opacity: 0, x: 300 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 300 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className={styles.sidebarHeader}>
+                <h3>Live Telemetry</h3>
+                <button 
+                  className={styles.collapseBtn}
+                  onClick={() => setRightPanelExpanded(false)}
+                >
+                  <Minimize2 size={16} />
+                </button>
+              </div>
+              
+              <div className={styles.telemetryContainer}>
+                <TelemetryPanel droneData={droneData} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Collapsed Right Panel Toggle */}
+        {!rightPanelExpanded && (
+          <motion.button 
+            className={styles.rightToggle}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            onClick={() => setRightPanelExpanded(true)}
+          >
+            <Maximize2 size={16} />
+          </motion.button>
+        )}
       </div>
 
-      {/* Control Bar */}
+      {/* Bottom Status Bar */}
       <motion.div 
-        className={styles.controlBar}
+        className={styles.bottomBar}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
       >
-        <ControlBar 
-          droneData={droneData}
-          isConnected={isConnected}
-          onCommand={sendCommand}
-        />
-      </motion.div>
-
-      {/* Alerts Panel */}
-      {alerts.length > 0 && (
-        <motion.div 
-          className={styles.alertsPanel}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {alerts.map((alert, index) => (
-            <div key={index} className={`${styles.alert} ${alert.includes('Critical') ? styles.critical : ''}`}>
+        <div className={styles.statusInfo}>
+          <span>Seq: {latestTelemetry?.seq || 0}</span>
+          <span>|</span>
+          <span>Mode: {droneData.flightMode}</span>
+          <span>|</span>
+          <span>Alt: {droneData.altitude.toFixed(1)}m</span>
+          <span>|</span>
+          <span>Speed: {droneData.groundSpeed.toFixed(1)}m/s</span>
+          <span>|</span>
+          <span>Battery: {droneData.batteryLevel}%</span>
+          <span>|</span>
+          <span>GPS: {droneData.satelliteCount} sats</span>
+        </div>
+        
+        <div className={styles.alertsSection}>
+          {alerts.length > 0 && (
+            <div className={styles.alertsContainer}>
               <AlertTriangle size={16} />
-              <span>{alert}</span>
+              <span>{alerts.length} Alert{alerts.length > 1 ? 's' : ''}</span>
             </div>
-          ))}
-        </motion.div>
-      )}
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 };

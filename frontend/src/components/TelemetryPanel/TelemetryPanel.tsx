@@ -76,10 +76,14 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({ droneData }) => {
       acc[key] = !allExpanded;
       return acc;
     }, {} as Record<string, boolean>);
+    
+    // Use a small delay to prevent animation conflicts
     setExpandedSections(newState);
   };
 
   const allExpanded = Object.values(expandedSections).every(Boolean);
+  const expandedCount = Object.values(expandedSections).filter(Boolean).length;
+  
   const telemetryItems = [
     {
       category: "Flight Data",
@@ -139,12 +143,24 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({ droneData }) => {
     // }
   ];
 
+  // Calculate overall telemetry stats
+  const totalItems = telemetryItems.reduce((sum, category) => sum + category.items.length, 0);
+  const criticalItems = telemetryItems.reduce((sum, category) => 
+    sum + category.items.filter(item => item.critical).length, 0
+  );
+
   return (
     <div className={styles.telemetryPanel}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <Wifi className={styles.headerIcon} size={20} />
           <h3>Live Telemetry</h3>
+          <div className={styles.statsIndicator}>
+            <span className={styles.totalStats}>{totalItems}</span>
+            {criticalItems > 0 && (
+              <span className={styles.criticalStats}>{criticalItems}</span>
+            )}
+          </div>
         </div>
         <div className={styles.headerRight}>
           <motion.button
@@ -159,7 +175,7 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({ droneData }) => {
         </div>
       </div>
       
-      <div className={styles.content}>
+      <div className={styles.content} data-expanded-count={expandedCount}>
         {telemetryItems.map((category, categoryIndex) => {
           const isExpanded = expandedSections[category.category];
           return (
@@ -174,7 +190,17 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({ droneData }) => {
                 className={styles.categoryHeader}
                 onClick={() => toggleSection(category.category)}
               >
-                <h4 className={styles.categoryTitle}>{category.category}</h4>
+                <h4 className={styles.categoryTitle}>
+                  {category.category}
+                  <span className={styles.itemCount}>
+                    {category.items.length}
+                    {category.items.some(item => item.critical) && (
+                      <span className={styles.criticalCount}>
+                        {category.items.filter(item => item.critical).length}
+                      </span>
+                    )}
+                  </span>
+                </h4>
                 <motion.div
                   animate={{ rotate: isExpanded ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
@@ -184,31 +210,57 @@ const TelemetryPanel: React.FC<TelemetryPanelProps> = ({ droneData }) => {
                 </motion.div>
               </div>
               
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 {isExpanded && (
                   <motion.div
+                    key={`${category.category}-items`}
                     initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
+                    animate={{ 
+                      height: "auto", 
+                      opacity: 1,
+                      transition: {
+                        height: { duration: 0.3, ease: "easeInOut" },
+                        opacity: { duration: 0.2, delay: 0.1 }
+                      }
+                    }}
+                    exit={{ 
+                      height: 0, 
+                      opacity: 0,
+                      transition: {
+                        height: { duration: 0.3, ease: "easeInOut" },
+                        opacity: { duration: 0.1 }
+                      }
+                    }}
                     className={styles.itemsContainer}
+                    style={{ overflow: 'hidden' }}
                   >
                     <div className={styles.itemsGrid}>
-                      {category.items.map((item) => (
+                      {category.items.map((item, itemIndex) => (
                         <motion.div
-                          key={item.label}
+                          key={`${item.label}-${category.category}`}
                           className={`${styles.telemetryItem} ${item.critical ? styles.critical : ''}`}
+                          initial={{ x: -10, opacity: 0 }}
+                          animate={{ 
+                            x: 0, 
+                            opacity: 1,
+                            transition: { 
+                              delay: itemIndex * 0.05,
+                              duration: 0.2 
+                            }
+                          }}
                           whileHover={{ scale: 1.02 }}
                           transition={{ duration: 0.2 }}
                         >
                           <div className={styles.itemHeader}>
-                            <span className={styles.itemIcon}>{item.icon}</span>
+                            <div className={styles.itemIcon}>{item.icon}</div>
                             <span className={styles.itemLabel}>{item.label}</span>
+                            {item.critical && (
+                              <div className={styles.statusIndicator}>
+                                <div className={styles.criticalDot} />
+                              </div>
+                            )}
                           </div>
                           <div className={styles.itemValue}>{item.value}</div>
-                          {item.critical && (
-                            <div className={styles.criticalIndicator} />
-                          )}
                         </motion.div>
                       ))}
                     </div>
